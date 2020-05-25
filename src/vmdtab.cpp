@@ -24,6 +24,8 @@
 #include "vsnippetlist.h"
 #include "vlivepreviewhelper.h"
 #include "vmathjaxinplacepreviewhelper.h"
+#include "vdirectory.h"
+#include "vdirectorytree.h"
 
 extern VMainWindow *g_mainWin;
 
@@ -94,11 +96,13 @@ VMdTab::VMdTab(VFile *p_file, VEditArea *p_editArea,
                 }
             });
 
-    if (p_mode == OpenFileMode::Edit) {
-        showFileEditMode();
-    } else {
-        showFileReadMode();
-    }
+    QTimer::singleShot(50, this, [this, p_mode]() {
+                if (p_mode == OpenFileMode::Edit) {
+                    showFileEditMode();
+                } else {
+                    showFileReadMode();
+                }
+            });
 }
 
 void VMdTab::setupUI()
@@ -110,6 +114,12 @@ void VMdTab::setupUI()
 
     // Setup editor when we really need it.
     m_editor = NULL;
+
+    // The following is the image hosting initialization
+    vGithubImageHosting = new VGithubImageHosting(m_file, this);
+    vGiteeImageHosting = new VGiteeImageHosting(m_file, this);
+    vWechatImageHosting = new VWechatImageHosting(m_file, this);
+    vTencentImageHosting = new VTencentImageHosting(m_file, this);
 
     QVBoxLayout *layout = new QVBoxLayout();
     layout->addWidget(m_splitter);
@@ -574,6 +584,15 @@ void VMdTab::setupMarkdownEditor()
     connect(m_editor, &VMdEditor::requestHtmlToText,
             this, &VMdTab::htmlToTextViaWebView);
 
+    connect(m_editor, &VMdEditor::requestUploadImageToGithub,
+            this, &VMdTab::handleUploadImageToGithubRequested);
+    connect(m_editor, &VMdEditor::requestUploadImageToGitee,
+            this, &VMdTab::handleUploadImageToGiteeRequested);
+    connect(m_editor, &VMdEditor::requestUploadImageToWechat,
+            this, &VMdTab::handleUploadImageToWechatRequested);
+    connect(m_editor, &VMdEditor::requestUploadImageToTencent,
+            this, &VMdTab::handleUploadImageToTencentRequested);
+
     if (m_editor->getVim()) {
         connect(m_editor->getVim(), &VVim::commandLineTriggered,
                 this, [this](VVim::CommandLineType p_type) {
@@ -608,6 +627,11 @@ void VMdTab::setupMarkdownEditor()
     connect(m_mathjaxPreviewHelper, &VMathJaxInplacePreviewHelper::checkBlocksForObsoletePreview,
             m_editor->getPreviewManager(), &VPreviewManager::checkBlocksForObsoletePreview);
     m_mathjaxPreviewHelper->setEnabled(m_editor->getPreviewManager()->isPreviewEnabled());
+
+    vGithubImageHosting->setEditor(m_editor);
+    vGiteeImageHosting->setEditor(m_editor);
+    vWechatImageHosting->setEditor(m_editor);
+    vTencentImageHosting->setEditor(m_editor);
 }
 
 void VMdTab::updateOutlineFromHtml(const QString &p_tocHtml)
@@ -940,7 +964,7 @@ void VMdTab::focusChild()
         break;
 
     default:
-        Q_ASSERT(false);
+        this->setFocus();
         break;
     }
 }
@@ -1435,6 +1459,30 @@ bool VMdTab::executeVimCommandInWebView(const QString &p_cmd)
     } else if (p_cmd == "nohlsearch" || p_cmd == "noh") {
         // :nohlsearch, clear highlight search.
         m_webViewer->findText("");
+    } else if (p_cmd == "e") {
+        // :e, enter edit mode.
+        showFileEditMode();
+    } else if (p_cmd.size() > 2 && p_cmd.left(2) == "e ") {
+        // :e <file>, open a note in edit mode.
+        auto filePath = p_cmd.mid(2).trimmed();
+
+        if(filePath.left(2) == "~/") {
+            filePath.remove(0, 1).insert(0, QDir::homePath());
+        } else if(filePath.left(2) == "./" || filePath[0] != '/') {
+            VDirectory *dir = g_mainWin->getDirectoryTree()->currentDirectory();
+            if(filePath.left(2) == "./") {
+                filePath.remove(0, 1);
+            } else {
+                filePath.insert(0, '/');
+            }
+            filePath.insert(0, dir->fetchPath());
+        }
+
+        if(g_mainWin->openFiles(QStringList(filePath), false, OpenFileMode::Edit).size()) {
+            msg = tr("Open %1 in edit mode.").arg(filePath);
+        } else {
+            msg = tr("Unable to open %1").arg(filePath);
+        }
     } else {
         validCommand = false;
     }
@@ -1499,6 +1547,70 @@ void VMdTab::handleSavePageRequested()
     emit statusMessage(tr("Saving page to %1").arg(fileName));
 
     m_webViewer->page()->save(fileName, format);
+}
+
+void VMdTab::handleUploadImageToGithubRequested()
+{
+    if (isModified()) {
+        VUtils::showMessage(QMessageBox::Information,
+                            tr("Information"),
+                            tr("Please save changes to file before uploading images."),
+                            "",
+                            QMessageBox::Ok,
+                            QMessageBox::Ok,
+                            this);
+        return;
+    }
+
+    vGithubImageHosting->handleUploadImageToGithubRequested();
+}
+
+void VMdTab::handleUploadImageToGiteeRequested()
+{
+    if (isModified()) {
+        VUtils::showMessage(QMessageBox::Information,
+                            tr("Information"),
+                            tr("Please save changes to file before uploading images."),
+                            "",
+                            QMessageBox::Ok,
+                            QMessageBox::Ok,
+                            this);
+        return;
+    }
+
+    vGiteeImageHosting->handleUploadImageToGiteeRequested();
+}
+
+void VMdTab::handleUploadImageToWechatRequested()
+{
+    if (isModified()) {
+        VUtils::showMessage(QMessageBox::Information,
+                            tr("Information"),
+                            tr("Please save changes to file before uploading images."),
+                            "",
+                            QMessageBox::Ok,
+                            QMessageBox::Ok,
+                            this);
+        return;
+    }
+
+    vWechatImageHosting->handleUploadImageToWechatRequested();
+}
+
+void VMdTab::handleUploadImageToTencentRequested()
+{
+    if (isModified()) {
+        VUtils::showMessage(QMessageBox::Information,
+                            tr("Information"),
+                            tr("Please save changes to file before uploading images."),
+                            "",
+                            QMessageBox::Ok,
+                            QMessageBox::Ok,
+                            this);
+        return;
+    }
+
+    vTencentImageHosting->handleUploadImageToTencentRequested();
 }
 
 VWordCountInfo VMdTab::fetchWordCountInfo(bool p_editMode) const

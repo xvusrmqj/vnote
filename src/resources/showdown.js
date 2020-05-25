@@ -1,3 +1,5 @@
+var VRenderer = 'showdown';
+
 var renderer = new showdown.Converter({simplifiedAutoLink: 'true',
                                        excludeTrailingPunctuationFromURLs: 'true',
                                        strikethrough: 'true',
@@ -126,18 +128,20 @@ var updateText = function(text) {
     renderPlantUML('language-puml');
     renderGraphviz('language-dot');
     addClassToCodeBlock();
+    addCopyButtonToCodeBlock();
     renderCodeBlockLineNumber();
 
     // If you add new logics after handling MathJax, please pay attention to
     // finishLoading logic.
     if (VEnableMathjax) {
-        try {
-            MathJax.Hub.Queue(["resetEquationNumbers",MathJax.InputJax.TeX],
-                              ["Typeset", MathJax.Hub, contentDiv, postProcessMathJax]);
-        } catch (err) {
-            content.setLog("err: " + err);
-            finishOneAsyncJob();
-        }
+        MathJax.texReset();
+        MathJax
+            .typesetPromise([contentDiv])
+            .then(postProcessMathJax)
+            .catch(function (err) {
+                content.setLog("err: " + err);
+                finishOneAsyncJob();
+            });
     } else {
         finishOneAsyncJob();
     }

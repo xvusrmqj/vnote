@@ -34,6 +34,8 @@ var getHeadingLevel = function(h) {
     return level;
 }
 
+var VRenderer = 'markdown-it';
+
 // There is a VMarkdownitOption struct passed in.
 // var VMarkdownitOption = { html, breaks, linkify, sub, sup };
 var mdit = window.markdownit({
@@ -175,6 +177,7 @@ var updateText = function(text) {
     renderPlantUML('lang-puml');
     renderGraphviz('lang-dot');
     addClassToCodeBlock();
+    addCopyButtonToCodeBlock();
     renderCodeBlockLineNumber();
 
     // If you add new logics after handling MathJax, please pay attention to
@@ -192,13 +195,14 @@ var updateText = function(text) {
             eles.push(texToRender[i]);
         }
 
-        try {
-            MathJax.Hub.Queue(["resetEquationNumbers",MathJax.InputJax.TeX],
-                              ["Typeset", MathJax.Hub, eles, postProcessMathJax]);
-        } catch (err) {
-            content.setLog("err: " + err);
-            finishOneAsyncJob();
-        }
+        MathJax.texReset();
+        MathJax
+            .typesetPromise(eles)
+            .then(postProcessMathJax)
+            .catch(function (err) {
+                content.setLog("err: " + err);
+                finishOneAsyncJob();
+            });
     } else {
         finishOneAsyncJob();
     }
@@ -241,7 +245,7 @@ var handleMetaData = function() {
 };
 
 var postProcessMathJaxWhenMathjaxReady = function() {
-    var all = MathJax.Hub.getAllJax();
+    var all = Array.from(MathJax.startup.document.math);
     for (var i = 0; i < all.length; ++i) {
         var node = all[i].SourceElement().parentNode;
         if (VRemoveMathjaxScript) {
@@ -251,13 +255,6 @@ var postProcessMathJaxWhenMathjaxReady = function() {
             } catch (err) {
                 content.setLog("err: " + err);
             }
-        }
-
-        if (node.tagName.toLowerCase() == 'code') {
-            var pre = node.parentNode;
-            var p = document.createElement('p');
-            p.innerHTML = node.innerHTML;
-            pre.parentNode.replaceChild(p, pre);
         }
     }
 };
@@ -278,11 +275,12 @@ var handleMathjaxReady = function() {
         eles.push(texToRender[i]);
     }
 
-    try {
-        MathJax.Hub.Queue(["resetEquationNumbers",MathJax.InputJax.TeX],
-                          ["Typeset", MathJax.Hub, eles, postProcessMathJaxWhenMathjaxReady]);
-    } catch (err) {
-        content.setLog("err: " + err);
-        finishOneAsyncJob();
-    }
+    MathJax.texReset();
+    MathJax
+        .typesetPromise(eles)
+        .then(postProcessMathJaxWhenMathjaxReady)
+        .catch(function (err) {
+            content.setLog("err: " + err);
+            finishOneAsyncJob();
+        });
 };

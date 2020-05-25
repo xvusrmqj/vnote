@@ -5,10 +5,12 @@
 
 For more information, please visit [**VNote's Homepage**](https://tamlok.github.io/vnote).
 
+Check this [showcase screencast](https://www.youtube.com/watch?v=EFCmCFZKxJ4) to know what you could do with VNote!
+
 ![VNote](screenshots/vnote.png)
 
 # Downloads
-Users from China can download the latest release of VNote from [Baidu Netdisk](http://pan.baidu.com/s/1jI5HROq).
+Users from China can download the latest release of VNote from [Baidu Netdisk](https://pan.baidu.com/s/1f404Mrzp3aMLSv3Bg2PSXg) with fetch code `mnac`.
 
 ## Windows
 ### Official Zip
@@ -61,6 +63,9 @@ makepkg -sic
 
 There is also a development version that tracks the latest master [vnote-git](https://aur.archlinux.org/packages/vnote-git/).
 
+### NixOS
+Thank @kuznero for packaging VNote in NixOS. It should be available in `unstable` and `unstable-small` channels.
+
 ## MacOS
 [![Build Status](https://travis-ci.org/tamlok/vnote.svg?branch=master)](https://travis-ci.org/tamlok/vnote)
 
@@ -74,7 +79,7 @@ brew cask install vnote
 ```
 
 # Description
-**VNote** is a Qt-based, free and open source note-taking application, focusing on Markdown. VNote is designed to provide comfortable edit experience, especially for programmers.
+**VNote** is a Qt-based, free and open source note-taking application, focusing on Markdown. VNote is designed to provide a comfortable editing experience, especially for programmers.
 
 VNote is **NOT** just a simple editor for Markdown. By providing notes management, VNote makes taking notes in Markdown simpler and more pleasant.
 
@@ -85,7 +90,8 @@ Utilizing Qt, VNote could run on **Linux**, **Windows**, and **macOS**.
 # Supports
 - [Github issues](https://github.com/tamlok/vnote/issues);
 - Email: `tamlokveer at gmail.com`;
-- [Slack](https://join.slack.com/t/vnote/shared_invite/enQtNDg2MzY0NDg3NzI4LTQ1Yzk1YjA5MjAyYTU0MjJkMTUxNmRiYWQ2YjlkOWU0ZGZlMTFlZTAxNzg0ZGUyNzI0ZGY2NDg4MmU1M2FkMDg);
+- [Slack](https://join.slack.com/t/vnote/shared_invite/enQtNDg2MzY0NDg3NzI4LTVhMzBlOTY0YzVhMmQyMTFmZDdhY2M3MDQxYTBjOTA2Y2IxOGRiZjg2NzdhMjkzYmUyY2VkMWJlZTNhMTQyODU);
+- [Telegram](https://t.me/vnotex);
 - WeChat Public Account: VNote笔记 (vnote_md);  
 ![VNote WeChat](screenshots/vnote_md.jpg)
 
@@ -106,6 +112,7 @@ Utilizing Qt, VNote could run on **Linux**, **Windows**, and **macOS**.
 - Attachments of notes;
 - Themes and dark mode;
 - Rich and extensible export, such as HTML, PDF, PDF (All In One), and images;
+- GitHub and WeChat image hosting;
 
 # Donate
 You could help VNote's development in many ways.
@@ -173,7 +180,7 @@ VNote supports powerful **in-place preview** for images, diagrams, and formulas 
 Just paste your image into the Markdown note, VNote will manage all other stuffs. VNote stores images in a specified folder in the same folder with the note. VNote will pop up a window to preview the image when you insert an image. Furthermore, VNote will delete the useless image files automatically after you remove the image links.
 
 ## Universal Entry & Full-Text Search
-VNote has powerful built-in full-text search with **Regular Expression** and **Fuzzy Search** support. The search could be executed wihtin all notebooks, current notebook, or current folder, targeted at name or content.
+VNote has powerful built-in full-text search with **Regular Expression** and **Fuzzy Search** support. The search could be executed within all notebooks, current notebook, or current folder, targeted at name or content.
 
 Like the `CtrlP` in Vim, VNote supports **Universal Entry** to reach anything by typing in a simple input.
 
@@ -210,7 +217,7 @@ In VNote, almost everything is configurable, such as background color, font, and
 - [markdown-it-container 2.0.0](https://github.com/markdown-it/markdown-it-container) (MIT License)
 - [mermaid 7.0.0](https://github.com/knsv/mermaid) (MIT License)
 - [MathJax](https://www.mathjax.org/) (Apache-2.0)
-- [showdown](https://github.com/showdownjs/showdown) (Unknown)
+- [showdown](https://github.com/showdownjs/showdown) (MIT License)
 - [flowchart.js](https://github.com/adrai/flowchart.js) (MIT License)
 - [PlantUML](http://plantuml.com/) (MIT License)
 - [dom-to-image](https://github.com/tsayen/dom-to-image) (MIT License)

@@ -1,3 +1,5 @@
+var VRenderer = 'hoedown';
+
 // Use Marked to highlight code blocks in edit mode.
 marked.setOptions({
     highlight: function(code, lang) {
@@ -91,19 +93,21 @@ var updateHtml = function(html) {
     }
 
     addClassToCodeBlock();
+    addCopyButtonToCodeBlock();
     renderCodeBlockLineNumber();
 
     // If you add new logics after handling MathJax, please pay attention to
     // finishLoading logic.
     // MathJax may be not loaded for now.
     if (VEnableMathjax && (typeof MathJax != "undefined")) {
-        try {
-            MathJax.Hub.Queue(["resetEquationNumbers",MathJax.InputJax.TeX],
-                              ["Typeset", MathJax.Hub, contentDiv, postProcessMathJax]);
-        } catch (err) {
-            content.setLog("err: " + err);
-            finishOneAsyncJob();
-        }
+        MathJax.texReset();
+        MathJax
+            .typesetPromise([contentDiv])
+            .then(postProcessMathJax)
+            .catch(function (err) {
+                content.setLog("err: " + err);
+                finishOneAsyncJob();
+            });
     } else {
         finishOneAsyncJob();
     }

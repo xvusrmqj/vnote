@@ -8,6 +8,7 @@
 #include "vconstants.h"
 #include "vmarkdownconverter.h"
 #include "vconfigmanager.h"
+#include "vimagehosting.h"
 
 class VWebView;
 class VDocument;
@@ -161,6 +162,18 @@ private slots:
     // Selection changed in web.
     void handleWebSelectionChanged();
 
+    // Process the image upload request to GitHub.
+    void handleUploadImageToGithubRequested();
+
+    // Process the image upload request to Gitee.
+    void handleUploadImageToGiteeRequested();
+
+    // Process image upload request to wechat.
+    void handleUploadImageToWechatRequested();
+
+    // Process image upload request to tencent.
+    void handleUploadImageToTencentRequested();
+
 private:
     enum TabReady { None = 0, ReadMode = 0x1, EditMode = 0x2 };
 
@@ -277,6 +290,11 @@ private:
     VMathJaxInplacePreviewHelper *m_mathjaxPreviewHelper;
 
     int m_documentID;
+
+    VGithubImageHosting *vGithubImageHosting;
+    VGiteeImageHosting *vGiteeImageHosting;
+    VWechatImageHosting *vWechatImageHosting;
+    VTencentImageHosting * vTencentImageHosting;
 };
 
 inline VMdEditor *VMdTab::getEditor()

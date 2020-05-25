@@ -23,12 +23,14 @@ var VPlantUMLDivClass = 'plantuml-diagram';
 var VMetaDataCodeClass = 'markdown-metadata';
 var VMarkRectDivClass = 'mark-rect';
 
+var hljsClass = 'hljs';
+
 var VPreviewMode = false;
 
 if (typeof VEnableMermaid == 'undefined') {
     VEnableMermaid = false;
 } else if (VEnableMermaid) {
-    mermaidAPI.initialize({
+    mermaid.initialize({
         startOnLoad: false
     });
 }
@@ -47,6 +49,10 @@ if (typeof VEnableWavedrom == 'undefined') {
 
 if (typeof VEnableHighlightLineNumber == 'undefined') {
     VEnableHighlightLineNumber = false;
+}
+
+if (typeof VEnableCodeBlockCopyButton == 'undefined') {
+    VEnableCodeBlockCopyButton = false;
 }
 
 if (typeof VStylesToInline == 'undefined') {
@@ -98,6 +104,10 @@ if (typeof VAddTOC == 'undefined') {
 
 if (typeof VOS == 'undefined') {
     VOS = 'win';
+}
+
+if (typeof VRenderer == 'undefined') {
+    VRenderer = 'markdown-it';
 }
 
 if (typeof handleMathjaxReady == 'undefined') {
@@ -271,6 +281,21 @@ window.onwheel = function(e) {
 }
 
 var skipScrollCheckRange = null;
+
+var VClipboardDataTextAttr = 'source-text';
+
+window.addEventListener('load', function() {
+    new ClipboardJS('.vnote-copy-clipboard-btn', {
+        text: function(trigger) {
+            var t = trigger.getAttribute(VClipboardDataTextAttr);
+            if (t[t.length - 1] == '\n') {
+                return t.substring(0, t.length - 1);
+            } else {
+                return t;
+            }
+        }
+    });
+});
 
 window.onscroll = function() {
     if (g_muteScroll) {
@@ -583,22 +608,7 @@ document.onkeydown = function(e) {
     }
 };
 
-var mermaidParserErr = false;
 var mermaidIdx = 0;
-
-if (VEnableMermaid) {
-    mermaidAPI.parseError = function(err, hash) {
-        content.setLog("err: " + err);
-        mermaidParserErr = true;
-
-        // Clean the container element, or mermaidAPI won't render the graph with
-        // the same id.
-        var errGraph = document.getElementById('mermaid-diagram-' + mermaidIdx);
-        var parentNode = errGraph.parentElement;
-        parentNode.outerHTML = '';
-        delete parentNode;
-    };
-}
 
 // @className, the class name of the mermaid code block, such as 'lang-mermaid'.
 var renderMermaid = function(className) {
@@ -623,17 +633,26 @@ var renderMermaid = function(className) {
 // Returns true if succeeded.
 var renderMermaidOne = function(code) {
     // Mermaid code block.
-    mermaidParserErr = false;
     mermaidIdx++;
     try {
         // Do not increment mermaidIdx here.
-        var graph = mermaidAPI.render('mermaid-diagram-' + mermaidIdx, code.textContent, function(){});
+        var graph = mermaid.render('mermaid-diagram-' + mermaidIdx,
+                                   code.textContent,
+                                   function(){});
     } catch (err) {
         content.setLog("err: " + err);
+        // Clean the container element, or mermaid won't render the graph with
+        // the same id.
+        var errGraph = document.getElementById('mermaid-diagram-' + mermaidIdx);
+        if (errGraph) {
+            var parentNode = errGraph.parentElement;
+            parentNode.outerHTML = '';
+            delete parentNode;
+        }
         return false;
     }
 
-    if (mermaidParserErr || typeof graph == "undefined") {
+    if (typeof graph == "undefined") {
         return false;
     }
 
@@ -1235,20 +1254,22 @@ var renderCodeBlockLineNumber = function() {
         }
     }
 
-    // Delete the last extra row.
-    var tables = document.getElementsByTagName('table');
-    for (var i = 0; i < tables.length; ++i) {
-        var table = tables[i];
-        if (table.classList.contains("hljs-ln")) {
-            var rowCount = table.rows.length;
-            table.deleteRow(rowCount - 1);
+    if (VRenderer != 'marked') {
+        // Delete the last extra row.
+        var tables = document.getElementsByTagName('table');
+        for (var i = 0; i < tables.length; ++i) {
+            var table = tables[i];
+            if (table.classList.contains("hljs-ln")) {
+                var rowCount = table.rows.length;
+                table.deleteRow(rowCount - 1);
+            }
         }
     }
 };
 
 var addClassToCodeBlock = function() {
-    var hljsClass = 'hljs';
     var codes = document.getElementsByTagName('code');
+    var mathCodes = [];
     for (var i = 0; i < codes.length; ++i) {
         var code = codes[i];
         var pare = code.parentElement;
@@ -1258,12 +1279,40 @@ var addClassToCodeBlock = function() {
             if (VEnableMathjax
                 && (code.classList.contains("lang-mathjax")
                     || code.classList.contains("language-mathjax"))) {
-                // Add the class to pre.
-                pare.classList.add("lang-mathjax");
-                pare.classList.add("language-mathjax");
-                pare.classList.add("tex-to-render");
+                mathCodes.push(code);
             }
         }
+    }
+
+    // Replace math codes with <x-eqn>.
+    for (var i = mathCodes.length - 1; i >= 0; --i) {
+        var code = mathCodes[i];
+        var pare = code.parentElement;
+        var xeqn = document.createElement('x-eqn');
+        xeqn.classList.add("tex-to-render");
+        xeqn.innerHTML = code.innerHTML;
+        pare.parentNode.replaceChild(xeqn, pare);
+    }
+};
+
+var addCopyButtonToCodeBlock = function() {
+    if (!VEnableCodeBlockCopyButton) {
+        return;
+    }
+
+    var codes = document.getElementsByClassName(hljsClass);
+    for (var i = 0; i < codes.length; ++i) {
+        var code = codes[i];
+        var pare = code.parentElement;
+        pare.classList.add('vnote-snippet');
+
+        var btn = document.createElement('button');
+        btn.innerHTML = '&#x1f4cb;';
+        btn.classList.add('vnote-btn');
+        btn.classList.add('vnote-copy-clipboard-btn');
+        btn.setAttribute('type', 'button');
+        btn.setAttribute(VClipboardDataTextAttr, code.textContent);
+        code.insertAdjacentElement('beforebegin', btn);
     }
 };
 
@@ -1344,7 +1393,7 @@ var getHtmlWithInlineStyles = function(container) {
 // Will be called after MathJax rendering finished.
 // Make <pre><code>math</code></pre> to <p>math</p>
 var postProcessMathJax = function() {
-    var all = MathJax.Hub.getAllJax();
+    var all = Array.from(MathJax.startup.document.math);
     for (var i = 0; i < all.length; ++i) {
         var node = all[i].SourceElement().parentNode;
         if (VRemoveMathjaxScript) {

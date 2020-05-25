@@ -2,6 +2,8 @@ var renderer = new marked.Renderer();
 var toc = []; // Table of contents as a list
 var nameCounter = 0;
 
+var VRenderer = 'marked';
+
 renderer.heading = function(text, level) {
     // Use number to avoid issues with Chinese
     var escapedText = 'toc_' + nameCounter++;
@@ -71,18 +73,20 @@ var updateText = function(text) {
     renderPlantUML('language-puml');
     renderGraphviz('language-dot');
     addClassToCodeBlock();
+    addCopyButtonToCodeBlock();
     renderCodeBlockLineNumber();
 
     // If you add new logics after handling MathJax, please pay attention to
     // finishLoading logic.
     if (VEnableMathjax) {
-        try {
-            MathJax.Hub.Queue(["resetEquationNumbers",MathJax.InputJax.TeX],
-                              ["Typeset", MathJax.Hub, contentDiv, postProcessMathJax]);
-        } catch (err) {
-            content.setLog("err: " + err);
-            finishOneAsyncJob();
-        }
+        MathJax.texReset();
+        MathJax
+            .typesetPromise([contentDiv])
+            .then(postProcessMathJax)
+            .catch(function (err) {
+                content.setLog("err: " + err);
+                finishOneAsyncJob();
+            });
     } else {
         finishOneAsyncJob();
     }

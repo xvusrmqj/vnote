@@ -52,7 +52,7 @@ const QString VNote::c_showdownAnchorExtraFile = ":/utils/showdown/showdown-head
 const QString VNote::c_turndownJsFile = ":/utils/turndown/turndown.js";
 const QString VNote::c_turndownGfmExtraFile = ":/utils/turndown/turndown-plugin-gfm.js";
 
-const QString VNote::c_mermaidApiJsFile = ":/utils/mermaid/mermaidAPI.min.js";
+const QString VNote::c_mermaidApiJsFile = ":/utils/mermaid/mermaid.min.js";
 const QString VNote::c_mermaidForestCssFile = ":/utils/mermaid/mermaid.forest.css";
 
 const QString VNote::c_flowchartJsFile = ":/utils/flowchart.js/flowchart.min.js";
@@ -61,8 +61,8 @@ const QString VNote::c_raphaelJsFile = ":/utils/flowchart.js/raphael.min.js";
 const QString VNote::c_wavedromJsFile = ":/utils/wavedrom/wavedrom.min.js";
 const QString VNote::c_wavedromThemeFile = ":/utils/wavedrom/wavedrom-theme.js";
 
-const QString VNote::c_plantUMLJsFile = "http://s.plantuml.com/synchro2.js";
-const QString VNote::c_plantUMLZopfliJsFile = "http://s.plantuml.com/zopfli.raw.min.js";
+const QString VNote::c_plantUMLJsFile = ":/utils/plantuml/synchro2.js";
+const QString VNote::c_plantUMLZopfliJsFile = ":/utils/plantuml/zopfli.raw.min.js";
 
 const QString VNote::c_highlightjsLineNumberExtraFile = ":/utils/highlightjs/highlightjs-line-numbers.min.js";
 
@@ -194,6 +194,8 @@ QString VNote::generateMathJaxPreviewTemplate()
     templ.replace(HtmlHolder::c_globalStyleHolder, cssStyle);
 
     templ.replace(HtmlHolder::c_cssHolder, g_config->getCssStyleUrl());
+
+    templ.replace(HtmlHolder::c_scaleFactorHolder, QString::number(VUtils::calculateScaleFactor()));
 
     return templ;
 }

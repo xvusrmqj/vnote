@@ -46,7 +46,7 @@ void VPlantUMLHelper::processAsync(int p_id,
         QStringList args(m_args);
         args << ("-t" + p_format);
         qDebug() << m_program << args;
-        process->start(m_program, args);
+        process->start(m_program, refineArgsForUse(args));
     } else {
         QString cmd(m_customCmd);
         cmd.replace("%0", p_format);
@@ -65,9 +65,15 @@ void VPlantUMLHelper::prepareCommand(QString &p_program,
                                      QStringList &p_args,
                                      const QString &p_jar) const
 {
+#if defined(Q_OS_WIN)
     p_program = "java";
+#else
+    p_program = "/bin/sh";
+    p_args << "-c";
+    p_args << "java";
+#endif
 
-    p_args << "-jar" << (p_jar.isEmpty() ? g_config->getPlantUMLJar() : p_jar);
+    p_args << "-Djava.awt.headless=true -jar" << (p_jar.isEmpty() ? g_config->getPlantUMLJar() : p_jar);
     p_args << "-charset" << "UTF-8";
 
     /*
@@ -136,6 +142,7 @@ bool VPlantUMLHelper::testPlantUMLJar(const QString &p_jar, QString &p_msg)
     VPlantUMLHelper inst(p_jar);
     QStringList args(inst.m_args);
     args << "-tsvg";
+    args = refineArgsForUse(args);
 
     QString testGraph("VNote->Markdown : hello");
 
@@ -168,6 +175,7 @@ QByteArray VPlantUMLHelper::process(const QString &p_format, const QString &p_te
     if (inst.m_customCmd.isEmpty()) {
         QStringList args(inst.m_args);
         args << ("-t" + p_format);
+        args = refineArgsForUse(args);
         ret = VProcessUtils::startProcess(inst.m_program,
                                           args,
                                           p_text.toUtf8(),
@@ -1101,4 +1109,24 @@ QString VPlantUMLHelper::keywordForSmartLivePreview(const QString &p_text,
 creole:
     tryCreole(kw);
     return kw;
+}
+
+QStringList VPlantUMLHelper::refineArgsForUse(const QStringList &p_args)
+{
+    if (p_args.isEmpty()) {
+        return QStringList();
+    }
+
+    if (p_args[0] == "-c") {
+        QStringList args;
+        args << p_args[0];
+        QString subCmd;
+        for (int i = 1; i < p_args.size(); ++i) {
+            subCmd += " " + p_args[i];
+        }
+        args << subCmd;
+        return args;
+    } else {
+        return p_args;
+    }
 }

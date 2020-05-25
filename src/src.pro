@@ -28,6 +28,8 @@ TRANSLATIONS += translations/vnote_zh_CN.ts \
 }
 
 SOURCES += main.cpp\
+    vapplication.cpp \
+    vimagehosting.cpp \
     vmainwindow.cpp \
     vdirectorytree.cpp \
     vnote.cpp \
@@ -164,7 +166,9 @@ SOURCES += main.cpp\
     dialog/vinserttabledialog.cpp
 
 HEADERS  += vmainwindow.h \
+    vapplication.h \
     vdirectorytree.h \
+    vimagehosting.h \
     vnote.h \
     vnotebook.h \
     dialog/vnewdirdialog.h \
@@ -312,6 +316,8 @@ HEADERS  += vmainwindow.h \
 RESOURCES += \
     vnote.qrc \
     translations.qrc
+    
+QTQUICK_COMPILER_SKIPPED_RESOURCES += vnote.qrc
 
 macx {
     LIBS += -L/usr/local/lib

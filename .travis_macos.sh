@@ -19,17 +19,19 @@ mkdir build
 cd build
 
 export VERBOSE=1
-export QT_CI_PACKAGES="qt.qt5.597.clang_64,qt.qt5.597.qtwebengine"
+export QT_CI_PACKAGES="qt.qt5.598.clang_64,qt.qt5.598.qtwebengine"
+export QT_CI_LOGIN="tamlok@qq.com"
+export QT_CI_PASSWORD="TravisCI@VNote"
 
 git clone https://github.com/tamlok/qtci.git
 source qtci/path.env
 
-install-qt 5.9.7
-source qt-5.9.7.env
+install-qt 5.9.8
+source qt-5.9.8.env
 
 echo $PATH
 
-QTDIR="${project_dir}/build/Qt/5.9.7/clang_64"
+QTDIR="${project_dir}/build/Qt/5.9.8/clang_64"
 LDFLAGS=-L$QTDIR/lib
 CPPFLAGS=-I$QTDIR/include
 

@@ -8,8 +8,6 @@
 ![VNote](screenshots/vnote.png)
 
 # ダウンロード
-中国のユーザは、VNoteを[バイヅゥ(Baidu Netdisk)](http://pan.baidu.com/s/1jI5HROq)から入手できます。
-
 ## Windows
 ### Zipアーカイブ
 ![Windowsビルド・ステータス](https://ci.appveyor.com/api/projects/status/github/tamlok/vnote?svg=true)
@@ -61,6 +59,9 @@ makepkg -sic
 
 また、最新のマスター[vnote git](https://aur.archlinux.org/packages/vnote-git/)を追跡する開発バージョンもあります。
 
+### NixOS
+Thank @kuznero for packaging VNote in NixOS. It should be available in `unstable` and `unstable-small` channels.
+
 ## MacOS
 [![Build Status](https://travis-ci.org/tamlok/vnote.svg?branch=master)](https://travis-ci.org/tamlok/vnote)
 
@@ -85,7 +86,8 @@ Qtを使用し、VNoteは、**Linux**, **Windows**そして、**macOS**で利用
 # サポート
 - [Github issues](https://github.com/tamlok/vnote/issues);
 - Email: `tamlokveer at gmail.com`;
-- [Slack](https://join.slack.com/t/vnote/shared_invite/enQtNDg2MzY0NDg3NzI4LTQ1Yzk1YjA5MjAyYTU0MjJkMTUxNmRiYWQ2YjlkOWU0ZGZlMTFlZTAxNzg0ZGUyNzI0ZGY2NDg4MmU1M2FkMDg);
+- [Slack](https://join.slack.com/t/vnote/shared_invite/enQtNDg2MzY0NDg3NzI4LTVhMzBlOTY0YzVhMmQyMTFmZDdhY2M3MDQxYTBjOTA2Y2IxOGRiZjg2NzdhMjkzYmUyY2VkMWJlZTNhMTQyODU);
+- [Telegram](https://t.me/vnotex);
 
 # ハイライト
 - 強力な**全文検索**;

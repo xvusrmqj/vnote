@@ -131,6 +131,9 @@ VMainWindow::VMainWindow(VSingleInstanceGuard *p_guard, QWidget *p_parent)
     initUpdateTimer();
 
     registerCaptainAndNavigationTargets();
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+    QApplication::setQuitOnLastWindowClosed(false);
+#endif
 }
 
 void VMainWindow::initSharedMemoryWatcher()
@@ -2251,7 +2254,10 @@ void VMainWindow::closeEvent(QCloseEvent *event)
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
     // Do not support minimized to tray on macOS.
-    isExit = true;
+    if (!isExit) {
+        event->accept();
+        return;
+    }
 #endif
 
     if (!isExit && g_config->getMinimizeToStystemTray() == -1) {
@@ -2747,9 +2753,11 @@ void VMainWindow::initTrayIcon()
 
     connect(m_trayIcon, &QSystemTrayIcon::activated,
             this, [this](QSystemTrayIcon::ActivationReason p_reason){
+#if !defined(Q_OS_MACOS) && !defined(Q_OS_MAC)
                 if (p_reason == QSystemTrayIcon::Trigger) {
                     this->showMainWindow();
                 }
+#endif
             });
 
     m_trayIcon->show();
@@ -3472,10 +3480,29 @@ void VMainWindow::kickOffStartUpTimer(const QStringList &p_files)
         }
 
         if (g_config->getAllowUserTrack()) {
-            QTimer::singleShot(30 * 1000, this, SLOT(collectUserStat()));
+            int interval = (30 + qrand() % 60) * 1000;
+            QTimer::singleShot(interval, this, SLOT(collectUserStat()));
         }
 
         m_syncNoteListToCurrentTab = true;
+
+#if defined(Q_OS_WIN)
+        if (g_config->isFreshInstall()) {
+            VUtils::showMessage(QMessageBox::Information,
+                                tr("Notices for Windows Users"),
+                                tr("OpenGL requried by VNote may not work well on Windows by default."
+                                   "You may update your display card driver or set another openGL option in VNote's Settings dialog."
+                                   "Check <a href=\"https://github.com/tamlok/vnote/issues/853\">GitHub issue</a> for details."),
+                                tr("Strange behaviors include:<br/>"
+                                   "* Interface freezes and does not response;<br/>"
+                                   "* Widgets are out of order after maximizing and restoring the main window;<br/>"
+                                   "* No cursor in edit mode;<br/>"
+                                   "* Menus are not clickable in full screen mode."),
+                                QMessageBox::Ok,
+                                QMessageBox::Ok,
+                                this);
+        }
+#endif
 
         g_config->updateLastStartDateTime();
     });

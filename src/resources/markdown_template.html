@@ -27,8 +27,16 @@
     <link rel="stylesheet" type="text/css" href="HIGHLIGHTJS_CSS_PLACE_HOLDER">
     <script src="qrc:/resources/qwebchannel.js"></script>
     <script src="qrc:/utils/highlightjs/highlight.pack.js"></script>
+    <script src="qrc:/utils/clipboard.js/clipboard.min.js"></script>
     <!-- EXTRA_PLACE_HOLDER -->
-    <script src="JS_PLACE_HOLDER" defer></script>
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+          }
+        };
+    </script>
+    <script src="JS_PLACE_HOLDER" defer id="MathJax-script"></script>
     <script src="qrc:/resources/common.js" defer></script>
     <script src="qrc:/resources/view_image.js" defer></script>
     <script src="qrc:/resources/markdown_template.js" defer></script>

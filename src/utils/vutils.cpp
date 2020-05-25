@@ -788,23 +788,24 @@ QString VUtils::generateHtmlTemplate(const QString &p_template,
             mj.replace(reg, QString("\\1%1").arg("TeX-MML-AM_SVG"));
         }
 
-        extraFile += "<script type=\"text/x-mathjax-config\">"
-                     "MathJax.Hub.Config({\n"
-                     "                    tex2jax: {inlineMath: [['$','$'], ['\\\\(','\\\\)']],\n"
-                                                    "processEscapes: true,\n"
-                                                    "processClass: \"tex2jax_process|language-mathjax|lang-mathjax\"},\n"
-                     "                    showProcessingMessages: false,\n"
-                     "                    skipStartupTypeset: " + QString("%1,\n").arg(mathjaxTypeSetOnLoad ? "false" : "true") +
-                     "                    TeX: {\n"
-                     "                          Macros: {\n"
-                     "                              bm: [\"\\\\boldsymbol{#1}\", 1]\n"
-                     "                          },\n"
-                     "                          equationNumbers: {\n"
-                     "                              autoNumber: \"AMS\"\n"
-                     "                          }\n"
-                     "                    },\n"
-                     "                    messageStyle: \"none\"});\n"
-                     "MathJax.Hub.Register.StartupHook(\"End\", function() { handleMathjaxReady(); });\n"
+        extraFile += "<script>"
+                     "MathJax = {\n"
+                     "    tex: {\n"
+                     "         inlineMath: [['$','$'], ['\\\\(','\\\\)']],\n"
+                     "         processEscapes: true,\n"
+                     "         tags: 'ams'\n"
+                     "    },\n"
+                     "    options: {\n"
+                     "         processHtmlClass: 'tex2jax_process|language-mathjax|lang-mathjax'\n"
+                     "    },\n"
+                     "    startup: {\n"
+                     "         typeset: " + QString("%1,\n").arg(mathjaxTypeSetOnLoad ? "true" : "false") +
+                     "         ready: function() {\n"
+                     "             MathJax.startup.defaultReady();\n"
+                     "             MathJax.startup.promise.then(handleMathjaxReady);\n"
+                     "         }\n"
+                     "    }\n"
+                     "}"
                      "</script>\n"
                      "<script type=\"text/javascript\" async src=\"" + mj + "\"></script>\n" +
                      "<script>var VEnableMathjax = true;</script>\n";
@@ -823,8 +824,8 @@ QString VUtils::generateHtmlTemplate(const QString &p_template,
     int plantUMLMode = g_config->getPlantUMLMode();
     if (plantUMLMode != PlantUMLMode::DisablePlantUML) {
         if (plantUMLMode == PlantUMLMode::OnlinePlantUML) {
-            extraFile += "<script type=\"text/javascript\" src=\"" + VNote::c_plantUMLJsFile + "\"></script>\n" +
-                         "<script type=\"text/javascript\" src=\"" + VNote::c_plantUMLZopfliJsFile + "\"></script>\n" +
+            extraFile += "<script src=\"qrc" + VNote::c_plantUMLJsFile + "\"></script>\n" +
+                         "<script src=\"qrc" + VNote::c_plantUMLZopfliJsFile + "\"></script>\n" +
                          "<script>var VPlantUMLServer = '" + g_config->getPlantUMLServer() + "';</script>\n";
         }
 
@@ -855,6 +856,10 @@ QString VUtils::generateHtmlTemplate(const QString &p_template,
 
     if (g_config->getEnableFlashAnchor()) {
         extraFile += "<script>var VEnableFlashAnchor = true;</script>\n";
+    }
+
+    if (g_config->getEnableCodeBlockCopyButton()) {
+        extraFile += "<script>var VEnableCodeBlockCopyButton = true;</script>\n";
     }
 
     if (p_addToc) {
@@ -894,39 +899,22 @@ QString VUtils::generateExportHtmlTemplate(const QString &p_renderBg,
     QString templ = VNote::generateExportHtmlTemplate(g_config->getRenderBackgroundColor(p_renderBg));
     QString extra;
     if (p_includeMathJax) {
-        extra += "<script type=\"text/x-mathjax-config\">\n"
-                 "MathJax.Hub.Config({\n"
-                 "                    showProcessingMessages: false,\n"
-                 "                    messageStyle: \"none\",\n"
-                 "                    SVG: {\n"
-                 "                          minScaleAdjust: 100,\n"
-                 "                          styles: {\n"
-/*
-FIXME: Using wkhtmltopdf, without 2em, the math formula will be very small. However,
-with 2em, if there are Chinese characters in it, the font will be a mess.
-*/
-#if defined(Q_OS_WIN)
-                 "                                   \".MathJax_SVG\": {\n"
-                 "                                                      \"font-size\": \"2em !important\"\n"
-                 "                                   }\n"
-#endif
-                 "                          }\n"
-                 "                    },\n"
-                 "                    TeX: {\n"
-                 "                          Macros: {\n"
-                 "                                   bm: [\"\\\\boldsymbol{#1}\", 1]\n"
-                 "                          },\n"
-                 "                          equationNumbers: {\n"
-                 "                                            autoNumber: \"AMS\"\n"
-                 "                          }\n"
-                 "                    }\n"
-                 "});\n"
+        extra += "<script>"
+                 "MathJax = {\n"
+                 "    tex: {\n"
+                 "         inlineMath: [['$','$'], ['\\\\(','\\\\)']],\n"
+                 "         processEscapes: true,\n"
+                 "         tags: 'ams'\n"
+                 "    },\n"
+                 "    options: {\n"
+                 "         processHtmlClass: 'tex2jax_process|language-mathjax|lang-mathjax'\n"
+                 "    }\n"
+                 "}"
                  "</script>\n";
-
         QString mj = g_config->getMathjaxJavascript();
         // Chante MathJax to be rendered as SVG.
-        QRegExp reg("(Mathjax\\.js\\?config=)\\S+", Qt::CaseInsensitive);
-        mj.replace(reg, QString("\\1%1").arg("TeX-MML-AM_SVG"));
+        QRegExp reg("tex-mml-chtml\\.js\\S+", Qt::CaseInsensitive);
+        mj.replace(reg, QString("tex-mml-svg.js"));
 
         extra += "<script type=\"text/javascript\" async src=\"" + mj + "\"></script>\n";
     }
@@ -941,6 +929,27 @@ with 2em, if there are Chinese characters in it, the font will be a mess.
         const QString outlineJs(":/resources/export/outline.js");
         QString js = VUtils::readFileFromDisk(outlineJs);
         extra += QString("<script type=\"text/javascript\">\n%1\n</script>\n").arg(js);
+    }
+
+    // Clipboard.js.
+    if (g_config->getEnableCodeBlockCopyButton()) {
+        const QString clipboardjs(":/utils/clipboard.js/clipboard.min.js");
+        QString js = VUtils::readFileFromDisk(clipboardjs);
+        extra += QString("<script type=\"text/javascript\">\n%1\n</script>\n").arg(js);
+        extra += "<script type=\"text/javascript\">"
+                     "window.addEventListener('load', function() {"
+                         "new ClipboardJS('.vnote-copy-clipboard-btn', {"
+                            "text: function(trigger) {"
+                                "var t = trigger.getAttribute('source-text');"
+                                "if (t[t.length - 1] == '\\n') {"
+                                    "return t.substring(0, t.length - 1);"
+                                "} else {"
+                                    "return t;"
+                                "}"
+                            "}"
+                        "});"
+                     "});"
+                 "</script>\n";
     }
 
     if (!extra.isEmpty()) {
@@ -958,8 +967,6 @@ QString VUtils::generateMathJaxPreviewTemplate()
 
     QString extraFile;
 
-    QString mathjaxScale = QString::number((int)(100 * VUtils::calculateScaleFactor()));
-
     /*
     // Mermaid.
     extraFile += "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + g_config->getMermaidCssStyleUrl() + "\"/>\n" +
@@ -971,32 +978,26 @@ QString VUtils::generateMathJaxPreviewTemplate()
                  "<script src=\"qrc" + VNote::c_flowchartJsFile + "\"></script>\n";
 
     // MathJax.
-    extraFile += "<script type=\"text/x-mathjax-config\">"
-                 "MathJax.Hub.Config({\n"
-                 "                    tex2jax: {inlineMath: [['$','$'], ['\\\\(','\\\\)']],\n"
-                                               "processEscapes: true,\n"
-                                               "processClass: \"tex2jax_process|language-mathjax|lang-mathjax\"},\n"
-                 "                    \"HTML-CSS\": {\n"
-                 "                                   scale: " + mathjaxScale + "\n"
-                 "                                  },\n"
-                 "                    showProcessingMessages: false,\n"
-                 "                    TeX: {\n"
-                 "                          Macros: {\n"
-                 "                              bm: [\"\\\\boldsymbol{#1}\", 1]\n"
-                 "                          },\n"
-                 "                          equationNumbers: {\n"
-                 "                              autoNumber: \"AMS\"\n"
-                 "                          }\n"
-                 "                    },\n"
-                 "                    messageStyle: \"none\"});\n"
+    extraFile += "<script>"
+                 "MathJax = {\n"
+                 "    tex: {\n"
+                 "         inlineMath: [['$','$'], ['\\\\(','\\\\)']],\n"
+                 "         processEscapes: true,\n"
+                 "         tags: 'ams'\n"
+                 "    },\n"
+                 "    options: {\n"
+                 "         processHtmlClass: 'tex2jax_process|language-mathjax|lang-mathjax'\n"
+                 "    }\n"
+                 "}"
                  "</script>\n";
+
 
     extraFile += "<script src=\"qrc" + VNote::c_wavedromThemeFile + "\"></script>\n" +
                  "<script src=\"qrc" + VNote::c_wavedromJsFile + "\"></script>\n";
 
     // PlantUML.
-    extraFile += "<script type=\"text/javascript\" src=\"" + VNote::c_plantUMLJsFile + "\"></script>\n" +
-                 "<script type=\"text/javascript\" src=\"" + VNote::c_plantUMLZopfliJsFile + "\"></script>\n" +
+    extraFile += "<script type=\"text/javascript\" src=\"qrc" + VNote::c_plantUMLJsFile + "\"></script>\n" +
+                 "<script type=\"text/javascript\" src=\"qrc" + VNote::c_plantUMLZopfliJsFile + "\"></script>\n" +
                  "<script>var VPlantUMLServer = '" + g_config->getPlantUMLServer() + "';</script>\n";
 
     templ.replace(HtmlHolder::c_extraHolder, extraFile);
@@ -1454,28 +1455,20 @@ QWebEngineView *VUtils::getWebEngineView(const QColor &p_background, QWidget *p_
     return viewer;
 }
 
-QString VUtils::getFileNameWithLocale(const QString &p_name, const QString &p_locale)
-{
-    QString locale = p_locale.isEmpty() ? getLocale() : p_locale;
-    locale = locale.split('_')[0];
-
-    QFileInfo fi(p_name);
-    QString baseName = fi.completeBaseName();
-    QString suffix = fi.suffix();
-
-    if (suffix.isEmpty()) {
-        return QString("%1_%2").arg(baseName).arg(locale);
-    } else {
-        return QString("%1_%2.%3").arg(baseName).arg(locale).arg(suffix);
-    }
-}
-
 QString VUtils::getDocFile(const QString &p_name)
 {
     QDir dir(VNote::c_docFileFolder);
-    QString name(getFileNameWithLocale(p_name));
+    QString fullLocale = getLocale();
+    QString shortLocale = fullLocale.split('_')[0];
+    // First looks full locale name folder (eg. zh_CN)
+    QString name = QString("%1/%2").arg(fullLocale).arg(p_name);
     if (!dir.exists(name)) {
-        name = getFileNameWithLocale(p_name, "en_US");
+        // If not found, try 2-char locale name folder (eg. ja)
+        name = QString("%1/%2").arg(shortLocale).arg(p_name);
+    }
+    if (!dir.exists(name)) {
+        // even not found, fall back to default english folder.
+        name = QString("%1/%2").arg("en").arg(p_name);
     }
 
     return dir.filePath(name);
